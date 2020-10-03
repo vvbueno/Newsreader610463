@@ -1,59 +1,69 @@
 package nl.bueno.henry.Session
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import nl.bueno.henry.Common.Common
 import nl.bueno.henry.MainActivity
 import nl.bueno.henry.Model.User
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 
-class SessionManager(private var context: Context) {
+object SessionManager {
 
-    private var preferences: SharedPreferences
-    private var editor: SharedPreferences.Editor
-    private var PRIVATE_MODE: Int = 0
+    private var context : Context? = null
+    private var preferences: SharedPreferences? = null
+    private var editor: SharedPreferences.Editor? = null
 
-    init {
+
+    fun setup(context: Context){
+        this.context = context
         preferences = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE)
-        editor = preferences.edit()
+        editor = preferences!!.edit()
     }
 
-    companion object {
-        val PREF_NAME: String = "Newsreader610463"
-        val IS_LOGIN: String = "isLoggedIn"
-        val KEY_USERNAME: String = "UserName"
+    private const val PRIVATE_MODE: Int = 0
+    const val PREF_NAME: String = "Newsreader610463"
+    private const val IS_LOGIN: String = "isLoggedIn"
+    const val KEY_USERNAME: String = "UserName"
+    const val KEY_XAUTHTOKEN: String = "x-authtoken"
+
+
+    @SuppressLint("CommitPrefEdits")
+    fun createLoginSession(username: String, xauthtoken: String){
+        editor!!.putBoolean(IS_LOGIN, true)
+        editor!!.putString(KEY_USERNAME, username)
+        editor!!.putString(KEY_XAUTHTOKEN, xauthtoken)
+        editor!!.commit()
+        reloadMainActivity()
     }
 
-    fun createLoginSession(username: String){
-        editor.putBoolean(IS_LOGIN, true)
-        editor.putString(KEY_USERNAME, username)
-        editor.commit()
+
+    fun getUserName(): String? {
+        return preferences!!.getString(KEY_USERNAME, null)
     }
 
-    fun checkLogin(){
-        if(!this.isLoggedIn()){
-            val i = Intent(context, MainActivity::class.java)
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(i)
-        }
+    fun getAuthToken(): String? {
+        return preferences!!.getString(KEY_XAUTHTOKEN, null)
     }
 
-    fun getUserDetails(): User {
-        return User(preferences.getString(KEY_USERNAME, null).toString())
+    fun isLoggedIn(): Boolean {
+        return preferences!!.getBoolean(IS_LOGIN, false)
     }
 
-    private fun isLoggedIn(): Boolean {
-        return preferences.getBoolean(IS_LOGIN, false)
-    }
-
+    @SuppressLint("CommitPrefEdits")
     fun logout(){
-        editor.clear()
-        editor.commit()
+        editor!!.clear()
+        editor!!.apply()
+        reloadMainActivity()
+    }
 
-        val i = Intent(context, MainActivity::class.java)
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(i)
+    private fun reloadMainActivity(){
+        val intent = Intent(context, MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context?.startActivity(intent)
     }
 
 }

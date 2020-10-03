@@ -7,54 +7,61 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import kotlinx.android.synthetic.main.article_row.view.*
 import nl.bueno.henry.Common.Common
 import nl.bueno.henry.DetailsActivity
 import nl.bueno.henry.Interface.ArticleService
-import nl.bueno.henry.MainActivity
+import nl.bueno.henry.Model.Article
 import nl.bueno.henry.Model.Category
 import nl.bueno.henry.R
+import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.fragments.HomeFragment
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ArticlesAdapter(private val activity: MainActivity) : RecyclerView.Adapter<ArticlesAdapter.ViewHolder>() {
+class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<ArticlesAdapter.ViewHolder>() {
+
+    private var articles : MutableList<Article> = ArrayList()
 
     private val articleService: ArticleService = Common.articleService
+    private lateinit var session: SessionManager
 
     private val likedColor: Int = Color.argb(255, 255, 0, 0)
     private val unLikedColor: Int = Color.argb(255, 0, 0, 0)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+
         val view = LayoutInflater.from(parent.context).inflate(R.layout.article_row, parent, false)
 
         val holder =  ViewHolder(view)
 
         view.setOnClickListener {
             val intent = Intent(parent.context, DetailsActivity::class.java)
-            intent.putExtra("articleTitle", activity.articles[holder.adapterPosition].Title)
-            intent.putExtra("articleSummary", activity.articles[holder.adapterPosition].Summary)
+            intent.putExtra("articleTitle", articles[holder.adapterPosition].Title)
+            intent.putExtra("articleSummary", articles[holder.adapterPosition].Summary)
 
             intent.putExtra(
                 "articlePublishDate",
-                activity.articles[holder.adapterPosition].PublishDate
+                articles[holder.adapterPosition].PublishDate
             )
-            intent.putExtra("articleImage", activity.articles[holder.adapterPosition].Image)
-            intent.putExtra("articleUrl", activity.articles[holder.adapterPosition].Url)
+            intent.putExtra("articleImage", articles[holder.adapterPosition].Image)
+            intent.putExtra("articleUrl", articles[holder.adapterPosition].Url)
 
-            val related = activity.articles[holder.adapterPosition].Related as ArrayList<String>
+            val related = articles[holder.adapterPosition].Related as ArrayList<String>
             Log.d("TEST", related.toString())
             intent.putExtra("articleRelatedLinks", related)
 
-            val articles = activity.articles[holder.adapterPosition].Categories as ArrayList<Category>
+            val categories = articles[holder.adapterPosition].Categories as ArrayList<Category>
 
             intent.putExtra(
                 "articleCategories",
-                articles
+                categories
             )
-            intent.putExtra("articleIsLiked", activity.articles[holder.adapterPosition].IsLiked)
+            intent.putExtra("articleIsLiked", articles[holder.adapterPosition].IsLiked)
             parent.context.startActivity(intent)
         }
 
@@ -65,16 +72,21 @@ class ArticlesAdapter(private val activity: MainActivity) : RecyclerView.Adapter
         return holder
     }
 
+    fun addArticles(articles: List<Article>) {
+        this.articles.addAll(articles)
+        notifyDataSetChanged()
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
      //   Log.d("ApiResponse", "adding a new article to the view")
-        val article = activity.articles[position]
+        val article = articles[position]
         holder.title.text = article.Title
         holder.itemView.thumbnail.load(article.Image)//{
      //       placeholder(R.drawable.ic_baseline_aspect_ratio_24)
       //  }
     }
 
-    override fun getItemCount() = activity.articles.size
+    override fun getItemCount() = articles.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         val title: TextView = itemView.title
@@ -82,14 +94,14 @@ class ArticlesAdapter(private val activity: MainActivity) : RecyclerView.Adapter
 
     private fun likeArticle(holder: ViewHolder){
         Log.d("ApiResponse", "likeArticle")
-        val article = activity.articles[holder.adapterPosition]
+        val article = articles[holder.adapterPosition]
 
         if(!article.IsLiked!!){
-            articleService.likeArticle(article.Id).enqueue(object :
+            articleService.likeArticle(article.Id, session.getAuthToken()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     Log.d("ApiResponse response", response.code().toString())
-                    activity.articles[holder.adapterPosition].IsLiked = true
+                    articles[holder.adapterPosition].IsLiked = true
                     holder.itemView.likeIcon.setColorFilter(likedColor)
                 }
                 override fun onFailure(call: Call<Void>, t: Throwable) {
@@ -98,11 +110,11 @@ class ArticlesAdapter(private val activity: MainActivity) : RecyclerView.Adapter
                 }
             })
         }else{
-            articleService.unlikeArticle(article.Id).enqueue(object :
+            articleService.unlikeArticle(article.Id, session.getAuthToken()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     Log.d("ApiResponse response", response.code().toString())
-                    activity.articles[holder.adapterPosition].IsLiked = false
+                    articles[holder.adapterPosition].IsLiked = false
                     holder.itemView.likeIcon.setColorFilter(unLikedColor)
                 }
                 override fun onFailure(call: Call<Void>, t: Throwable) {

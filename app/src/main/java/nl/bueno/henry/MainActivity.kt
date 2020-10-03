@@ -1,132 +1,58 @@
 package nl.bueno.henry
 
+import android.content.ClipData
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_main.*
-import nl.bueno.henry.Adapter.ArticlesAdapter
-import nl.bueno.henry.Interface.ArticleService
-import nl.bueno.henry.Common.Common
-import nl.bueno.henry.Interface.AuthService
-import nl.bueno.henry.Interface.FeedService
-import nl.bueno.henry.Model.Article
-import nl.bueno.henry.Model.ArticlesResult
 import nl.bueno.henry.Session.SessionManager
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import nl.bueno.henry.fragments.HomeFragment
+import nl.bueno.henry.fragments.LikedFragment
+import nl.bueno.henry.fragments.LoginFragment
+import nl.bueno.henry.fragments.ProfileFragment
+
 
 class MainActivity : AppCompatActivity() {
 
-    private val articleService: ArticleService = Common.articleService
-    private val feedService: FeedService = Common.feedService
-    private val authService: AuthService = Common.authService
-
-    val articles: MutableList<Article> = ArrayList()
-
-    lateinit var adapter: ArticlesAdapter
-    lateinit var layoutManager: LinearLayoutManager
-
-    private var nextId: Int? = null
-
-    private var page: Int = 0
-
-    private var isLoading: Boolean = false
-
-    private val limitPerPage : Int = 20;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
-
         super.onCreate(savedInstanceState)
-
         setContentView(R.layout.activity_main)
 
-        layoutManager = LinearLayoutManager(this@MainActivity)
-        adapter = ArticlesAdapter(this@MainActivity)
+        (SessionManager::setup)(applicationContext)
 
-        recyclerView.layoutManager = layoutManager
-        recyclerView.adapter = adapter
+        val homeFragment = HomeFragment()
+        val likedFragment = LikedFragment()
 
-        if(articles.isEmpty()){
-            getArticles()
+        val profileFragment : Fragment
+
+        if((SessionManager::isLoggedIn)()){
+            profileFragment = ProfileFragment()
+            bottom_navigation.menu.findItem(R.id.navLiked).isEnabled = true
+            makeCurrentFragment(profileFragment)
+        }else{
+            profileFragment = LoginFragment()
+            bottom_navigation.menu.findItem(R.id.navLiked).isEnabled = false
+            makeCurrentFragment(homeFragment)
         }
 
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-
-                if (dy > 0) {
-                    val visibleItemCount = layoutManager.childCount
-                    val pastVisibleItem = layoutManager.findFirstCompletelyVisibleItemPosition()
-                    val total = adapter.itemCount
-
-                    if (!isLoading) {
-                        if ((visibleItemCount + pastVisibleItem) >= total) {
-                            isLoading = true
-                            progressBar.visibility = View.VISIBLE
-                            page++
-                            Log.d("ApiResponse", "nextId: $nextId")
-                            getNextArticles(nextId)
-                        }
-
-                    }
-                }
-
-                super.onScrolled(recyclerView, dx, dy)
+        bottom_navigation.setOnNavigationItemSelectedListener {
+            when(it.itemId){
+                R.id.navHome -> makeCurrentFragment(homeFragment)
+                R.id.navLiked -> makeCurrentFragment(likedFragment)
+                R.id.navProfile -> makeCurrentFragment(profileFragment)
             }
-        })
+            true
+        }
     }
 
-    private fun getArticles(){
-
-        Log.d("ApiResponse", "getArticles")
-
-        articleService.getLatestArticles(limitPerPage).enqueue(object : Callback<ArticlesResult> {
-            override fun onResponse(call: Call<ArticlesResult>, response: Response<ArticlesResult>) {
-                if(response.body() != null){
-                    articles.addAll(response.body()!!.Results)
-                    nextId = response.body()!!.NextId
-                    adapter.notifyDataSetChanged()
-                    isLoading = false
-                    progressBar.visibility = View.GONE
-                }
-            }
-            override fun onFailure(call: Call<ArticlesResult>, t: Throwable) {
-                Log.d("ApiResponse", "The call failed")
-                Log.d("ApiResponse error", t.message.toString())
-                if( t.message.toString() == "timeout"){
-                    Log.d("ApiResponse", "Trying again....")
-                    getArticles()
-                }
-            }
-        })
-    }
-
-    private fun getNextArticles(nextArticleId: Int?){
-
-        Log.d("ApiResponse", "getNextArticles")
-
-        articleService.getNextArticles(nextArticleId, limitPerPage).enqueue(object : Callback<ArticlesResult> {
-            override fun onResponse(call: Call<ArticlesResult>, response: Response<ArticlesResult>) {
-                if(response.body() != null){
-                    articles.addAll(response.body()!!.Results)
-                    nextId = response.body()!!.NextId
-                    adapter.notifyDataSetChanged()
-                    isLoading = false
-                    progressBar.visibility = View.GONE
-                }
-            }
-
-            override fun onFailure(call: Call<ArticlesResult>, t: Throwable) {
-                Log.d("ApiResponse", "The call failed")
-                Log.d("ApiResponse error", t.message.toString())
-            }
-        })
-    }
-
+    private fun makeCurrentFragment(fragment: Fragment) =
+        supportFragmentManager.beginTransaction().apply {
+            replace(R.id.fl_wrapper, fragment)
+            commit()
+        }
 
     companion object {
         private const val TAG = "MainActivity"

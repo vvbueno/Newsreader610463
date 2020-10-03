@@ -18,9 +18,6 @@ import nl.bueno.henry.Common.Common
 
 class DetailsActivity : AppCompatActivity() {
 
-    private val articleService: ArticleService = Common.articleService
-
-
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")

@@ -1,6 +1,6 @@
 package nl.bueno.henry.Interface
 
-import nl.bueno.henry.Model.Feed
+import nl.bueno.henry.Session.AuthToken
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -8,10 +8,10 @@ interface AuthService {
 
     @FormUrlEncoded
     @POST("users/login")
-    fun login(@Field("UserName") username: Int, @Field("Password") password: Int): Call<Void>
+    fun login( @Field("UserName") username: String, @Field("Password") password: String): Call<AuthToken>
 
     @FormUrlEncoded
     @POST("users/register")
-    fun register(@Field("UserName") username: Int, @Field("Password") password: Int): Call<Void>
+    fun register(@Field("UserName") username: String, @Field("Password") password: String): Call<Void>
 
 }
