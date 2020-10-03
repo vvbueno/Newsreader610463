@@ -1,5 +1,5 @@
 package nl.bueno.henry.Session
 
-data class AuthToken(
+data class LoginResponse(
     val AuthToken: String,
 )

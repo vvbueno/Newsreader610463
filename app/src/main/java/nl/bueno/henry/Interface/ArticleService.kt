@@ -1,7 +1,6 @@
 package nl.bueno.henry.Interface
 
 import nl.bueno.henry.Model.ArticlesResult
-import nl.bueno.henry.Session.AuthToken
 import retrofit2.Call
 import retrofit2.http.*
 

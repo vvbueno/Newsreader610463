@@ -1,22 +1,19 @@
 package nl.bueno.henry.fragments
 
-import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.fragment_login.*
-import kotlinx.android.synthetic.main.fragment_login.view.*
 import nl.bueno.henry.Common.Common
-import nl.bueno.henry.Interface.ArticleService
 import nl.bueno.henry.Interface.AuthService
-import nl.bueno.henry.Model.ArticlesResult
+import nl.bueno.henry.MainActivity
 import nl.bueno.henry.R
-import nl.bueno.henry.Session.AuthToken
+import nl.bueno.henry.RegisterActivity
+import nl.bueno.henry.Session.LoginResponse
 import nl.bueno.henry.Session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -51,6 +48,13 @@ class LoginFragment() : BaseFragment() {
         loginButton.setOnClickListener {
             loginEvent()
         }
+
+        signUpLabel.setOnClickListener{
+            val intent = Intent(this.context, RegisterActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            this.context?.startActivity(intent)
+        }
     }
 
     fun loginEvent(){
@@ -60,8 +64,8 @@ class LoginFragment() : BaseFragment() {
             val password: String = passwordField.text.toString()
 
             authService.login(username, password).enqueue(object :
-                Callback<AuthToken> {
-                override fun onResponse(call: Call<AuthToken>, response: Response<AuthToken>) {
+                Callback<LoginResponse> {
+                override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
                     when (response.code().toString()) {
                         "200" -> response.body()?.AuthToken?.let { successLogin(username, it) }
                         "401" -> unauthorizedLogin()
@@ -72,7 +76,7 @@ class LoginFragment() : BaseFragment() {
                     }
                 }
 
-                override fun onFailure(call: Call<AuthToken>, t: Throwable) {
+                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                     Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
                 }

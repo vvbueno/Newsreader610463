@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import kotlinx.android.synthetic.main.article_row.view.*
@@ -18,17 +17,17 @@ import nl.bueno.henry.Model.Article
 import nl.bueno.henry.Model.Category
 import nl.bueno.henry.R
 import nl.bueno.henry.Session.SessionManager
-import nl.bueno.henry.fragments.HomeFragment
+import nl.bueno.henry.fragments.BaseFragment
+import nl.bueno.henry.fragments.LoginFragment
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<ArticlesAdapter.ViewHolder>() {
+class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter<ArticlesAdapter.ViewHolder>() {
 
     private var articles : MutableList<Article> = ArrayList()
 
     private val articleService: ArticleService = Common.articleService
-    private lateinit var session: SessionManager
 
     private val likedColor: Int = Color.argb(255, 255, 0, 0)
     private val unLikedColor: Int = Color.argb(255, 0, 0, 0)
@@ -37,7 +36,7 @@ class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<Ar
 
         val view = LayoutInflater.from(parent.context).inflate(R.layout.article_row, parent, false)
 
-        val holder =  ViewHolder(view)
+        val holder = ViewHolder(view)
 
         view.setOnClickListener {
             val intent = Intent(parent.context, DetailsActivity::class.java)
@@ -66,9 +65,15 @@ class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<Ar
         }
 
         view.likeIcon.setOnClickListener {
-            likeArticle(holder)
+            if(!(SessionManager::isLoggedIn)()){
+                fragment.activity?.supportFragmentManager?.beginTransaction()?.apply {
+                    replace(R.id.fl_wrapper, LoginFragment())
+                    commit()
+                }
+            }else{
+                likeArticle(holder)
+            }
         }
-
         return holder
     }
 
@@ -78,12 +83,12 @@ class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<Ar
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-     //   Log.d("ApiResponse", "adding a new article to the view")
+        //   Log.d("ApiResponse", "adding a new article to the view")
         val article = articles[position]
         holder.title.text = article.Title
         holder.itemView.thumbnail.load(article.Image)//{
-     //       placeholder(R.drawable.ic_baseline_aspect_ratio_24)
-      //  }
+        //       placeholder(R.drawable.ic_baseline_aspect_ratio_24)
+        //  }
     }
 
     override fun getItemCount() = articles.size
@@ -97,7 +102,7 @@ class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<Ar
         val article = articles[holder.adapterPosition]
 
         if(!article.IsLiked!!){
-            articleService.likeArticle(article.Id, session.getAuthToken()).enqueue(object :
+            articleService.likeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     Log.d("ApiResponse response", response.code().toString())
@@ -110,7 +115,7 @@ class ArticlesAdapter(private var fragment : Fragment) : RecyclerView.Adapter<Ar
                 }
             })
         }else{
-            articleService.unlikeArticle(article.Id, session.getAuthToken()).enqueue(object :
+            articleService.unlikeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     Log.d("ApiResponse response", response.code().toString())
