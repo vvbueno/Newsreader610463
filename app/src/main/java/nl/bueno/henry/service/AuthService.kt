@@ -1,7 +1,7 @@
-package nl.bueno.henry.Interface
+package nl.bueno.henry.`interface`
 
-import nl.bueno.henry.Session.LoginResponse
-import nl.bueno.henry.Session.RegisterResponse
+import nl.bueno.henry.session.LoginResponse
+import nl.bueno.henry.session.RegisterResponse
 import retrofit2.Call
 import retrofit2.http.*
 

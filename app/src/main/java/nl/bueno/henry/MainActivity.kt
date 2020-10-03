@@ -1,12 +1,11 @@
 package nl.bueno.henry
 
-import android.content.ClipData
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import kotlinx.android.synthetic.main.activity_main.*
-import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.session.SessionManager
 import nl.bueno.henry.fragments.HomeFragment
 import nl.bueno.henry.fragments.LikedFragment
 import nl.bueno.henry.fragments.LoginFragment

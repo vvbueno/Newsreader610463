@@ -1,6 +1,6 @@
-package nl.bueno.henry.Interface
+package nl.bueno.henry.`interface`
 
-import nl.bueno.henry.Model.Feed
+import nl.bueno.henry.model.Feed
 import retrofit2.Call
 import retrofit2.http.*
 

@@ -6,11 +6,11 @@ import android.util.Log
 import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.activity_register.passwordField
 import kotlinx.android.synthetic.main.activity_register.usernameField
-import nl.bueno.henry.Common.Common
-import nl.bueno.henry.Interface.AuthService
-import nl.bueno.henry.Session.LoginResponse
-import nl.bueno.henry.Session.RegisterResponse
-import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.common.Common
+import nl.bueno.henry.service.AuthService
+import nl.bueno.henry.service.response.LoginResponse
+import nl.bueno.henry.service.response.RegisterResponse
+import nl.bueno.henry.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
