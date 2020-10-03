@@ -1,4 +1,4 @@
-package nl.bueno.henry.fragments
+package nl.bueno.henry.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
@@ -6,16 +6,16 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.fragment_home.progressBar
-import nl.bueno.henry.Adapter.ArticlesAdapter
-import nl.bueno.henry.Common.Common
-import nl.bueno.henry.Interface.ArticleService
-import nl.bueno.henry.Model.ArticlesResult
+import nl.bueno.henry.adapter.ArticlesAdapter
+import nl.bueno.henry.common.Common
+import nl.bueno.henry.service.ArticleService
+import nl.bueno.henry.service.response.ArticlesResponse
 import nl.bueno.henry.R
 import nl.bueno.henry.R.layout.fragment_home
-import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -30,16 +30,17 @@ class HomeFragment() : BaseFragment() {
 
     private val articleService: ArticleService = Common.articleService
 
-    lateinit var adapter: ArticlesAdapter
+    private lateinit var adapter: ArticlesAdapter
     private lateinit var layoutManager: LinearLayoutManager
 
     private lateinit var articlesRecyclerView: RecyclerView
+    private lateinit var progressBar: ProgressBar
 
     private var nextId: Int? = null
-
     private var isLoading: Boolean = false
-
     private val limitPerPage : Int = 20
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +51,8 @@ class HomeFragment() : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         Log.d("is logged in?", (SessionManager::isLoggedIn)().toString())
+
+        progressBar = view.findViewById(R.id.progressBar)
 
         getArticles(null)
 
@@ -101,8 +104,8 @@ class HomeFragment() : BaseFragment() {
 
         if(nextArticleId == null){
             Log.d("ApiResponse", "getArticles")
-            articleService.getLatestArticles(limitPerPage, (SessionManager::getAuthToken)()).enqueue(object : Callback<ArticlesResult> {
-                override fun onResponse(call: Call<ArticlesResult>, response: Response<ArticlesResult>) {
+            articleService.getLatestArticles(limitPerPage, (SessionManager::getAuthToken)()).enqueue(object : Callback<ArticlesResponse> {
+                override fun onResponse(call: Call<ArticlesResponse>, response: Response<ArticlesResponse>) {
                     if(response.body() != null){
                         nextId = response.body()!!.NextId
                         adapter.addArticles(response.body()!!.Results)
@@ -111,7 +114,7 @@ class HomeFragment() : BaseFragment() {
                         Log.d(TAG, response.code().toString())
                     }
                 }
-                override fun onFailure(call: Call<ArticlesResult>, t: Throwable) {
+                override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                     Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
                     if( t.message.toString() == "timeout"){
@@ -124,8 +127,8 @@ class HomeFragment() : BaseFragment() {
         }else{
             Log.d("ApiResponse", "getNextArticles")
             articleService.getNextArticles(nextArticleId, limitPerPage, (SessionManager::getAuthToken)()).enqueue(object :
-                Callback<ArticlesResult> {
-                override fun onResponse(call: Call<ArticlesResult>, response: Response<ArticlesResult>) {
+                Callback<ArticlesResponse> {
+                override fun onResponse(call: Call<ArticlesResponse>, response: Response<ArticlesResponse>) {
                     if(response.body() != null){
                         nextId = response.body()!!.NextId
                         adapter.addArticles(response.body()!!.Results)
@@ -133,7 +136,7 @@ class HomeFragment() : BaseFragment() {
                     }
                 }
 
-                override fun onFailure(call: Call<ArticlesResult>, t: Throwable) {
+                override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                     Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
                     if( t.message.toString() == "timeout"){

@@ -1,14 +1,10 @@
-package nl.bueno.henry.Session
+package nl.bueno.henry.session
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import nl.bueno.henry.Common.Common
 import nl.bueno.henry.MainActivity
-import nl.bueno.henry.Model.User
-import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
 
 object SessionManager {
 

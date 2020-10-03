@@ -1,4 +1,4 @@
-package nl.bueno.henry.Model
+package nl.bueno.henry.model
 
 import java.io.Serializable
 

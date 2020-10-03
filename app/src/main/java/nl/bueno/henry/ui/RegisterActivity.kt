@@ -1,11 +1,14 @@
-package nl.bueno.henry
+package nl.bueno.henry.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
+import android.widget.EditText
 import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.activity_register.passwordField
 import kotlinx.android.synthetic.main.activity_register.usernameField
+import nl.bueno.henry.R
 import nl.bueno.henry.common.Common
 import nl.bueno.henry.service.AuthService
 import nl.bueno.henry.service.response.LoginResponse
@@ -19,10 +22,18 @@ class RegisterActivity : AppCompatActivity() {
 
     private val authService: AuthService = Common.authService
 
+    private lateinit var usernameField : EditText
+    private lateinit var passwordField : EditText
+    private lateinit var registerButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        usernameField = findViewById(R.id.usernameField)
+        passwordField = findViewById(R.id.passwordField)
+        registerButton = findViewById(R.id.loginButton)
 
         registerButton.setOnClickListener {
             registerEvent()

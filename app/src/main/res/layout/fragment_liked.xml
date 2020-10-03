@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.LikedFragment">
+    tools:context=".ui.fragments.LikedFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/likedArticlesRv"
@@ -14,7 +14,7 @@
         android:paddingBottom="30dp"
         android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:context=".fragments.LikedFragment"
+        tools:context=".ui.fragments.LikedFragment"
         tools:listitem="@layout/article_row">
     </androidx.recyclerview.widget.RecyclerView>
 

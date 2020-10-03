@@ -23,7 +23,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter<ArticlesAdapter.ViewHolder>() {
+class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter<LikedArticlesAdapter.ViewHolder>() {
 
     private var articles : MutableList<Article> = ArrayList()
 

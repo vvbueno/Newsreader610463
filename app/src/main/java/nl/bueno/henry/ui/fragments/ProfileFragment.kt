@@ -1,4 +1,4 @@
-package nl.bueno.henry.fragments
+package nl.bueno.henry.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
@@ -6,10 +6,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.fragment_login.*
-import kotlinx.android.synthetic.main.fragment_profile.*
+import android.widget.Button
+import android.widget.TextView
 import nl.bueno.henry.R
-import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.session.SessionManager
 
 /**
  * A simple [Fragment] subclass.
@@ -17,6 +17,9 @@ import nl.bueno.henry.Session.SessionManager
  * create an instance of this fragment.
  */
 class ProfileFragment() : BaseFragment() {
+
+    private lateinit var loggedInUsername : TextView
+    private lateinit var logoutButton : Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
@@ -35,6 +38,8 @@ class ProfileFragment() : BaseFragment() {
         Log.d(TAG, "onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
+        loggedInUsername = view.findViewById(R.id.loggedInUsername)
+        logoutButton = view.findViewById(R.id.logoutButton)
 
         loggedInUsername.text = (SessionManager::getUserName)()
 

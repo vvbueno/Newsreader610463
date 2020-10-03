@@ -1,10 +1,10 @@
-package nl.bueno.henry.`interface`
+package nl.bueno.henry.service
 
-import nl.bueno.henry.model.Feed
+import nl.bueno.henry.service.response.FeedsResponse
 import retrofit2.Call
 import retrofit2.http.*
 
 interface FeedService {
-    @GET("articles")
-    fun getAllFeeds(): Call<List<Feed>>
+    @GET("feeds")
+    fun getAllFeeds(): Call<FeedsResponse>
 }

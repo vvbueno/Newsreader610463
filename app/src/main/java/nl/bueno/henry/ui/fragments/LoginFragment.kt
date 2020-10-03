@@ -1,4 +1,4 @@
-package nl.bueno.henry.fragments
+package nl.bueno.henry.ui.fragments
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,14 +7,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import kotlinx.android.synthetic.main.fragment_login.*
-import nl.bueno.henry.Common.Common
-import nl.bueno.henry.Interface.AuthService
-import nl.bueno.henry.MainActivity
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import nl.bueno.henry.common.Common
+import nl.bueno.henry.service.AuthService
 import nl.bueno.henry.R
-import nl.bueno.henry.RegisterActivity
-import nl.bueno.henry.Session.LoginResponse
-import nl.bueno.henry.Session.SessionManager
+import nl.bueno.henry.service.response.LoginResponse
+import nl.bueno.henry.ui.RegisterActivity
+import nl.bueno.henry.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -27,6 +28,11 @@ import retrofit2.Response
 class LoginFragment() : BaseFragment() {
 
     private val authService: AuthService = Common.authService
+
+    private lateinit var usernameField : EditText
+    private lateinit var passwordField : EditText
+    private lateinit var loginButton : Button
+    private lateinit var signUpLabel : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
@@ -45,6 +51,13 @@ class LoginFragment() : BaseFragment() {
         Log.d(TAG, "onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
+        usernameField = view.findViewById(R.id.usernameField)
+        passwordField = view.findViewById(R.id.passwordField)
+
+        loginButton = view.findViewById(R.id.loginButton)
+
+        signUpLabel = view.findViewById(R.id.signUpLabel)
+
         loginButton.setOnClickListener {
             loginEvent()
         }
@@ -58,6 +71,7 @@ class LoginFragment() : BaseFragment() {
     }
 
     fun loginEvent(){
+
         if(usernameField.text.isNotEmpty() && passwordField.text.isNotEmpty()) {
 
             val username: String = usernameField.text.toString()

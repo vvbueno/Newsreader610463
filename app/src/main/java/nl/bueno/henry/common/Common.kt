@@ -1,8 +1,8 @@
-package nl.bueno.henry.Common
+package nl.bueno.henry.common
 
-import nl.bueno.henry.Interface.ArticleService
-import nl.bueno.henry.Interface.AuthService
-import nl.bueno.henry.Interface.FeedService
+import nl.bueno.henry.service.ArticleService
+import nl.bueno.henry.service.AuthService
+import nl.bueno.henry.service.FeedService
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
