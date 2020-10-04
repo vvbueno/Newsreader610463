@@ -18,6 +18,7 @@ import nl.bueno.henry.session.SessionManager
  */
 class ProfileFragment() : BaseFragment() {
 
+    // ui elements
     private lateinit var loggedInUsername : TextView
     private lateinit var logoutButton : Button
 
@@ -38,11 +39,14 @@ class ProfileFragment() : BaseFragment() {
         Log.d(TAG, "onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
+        // init ui elements
         loggedInUsername = view.findViewById(R.id.loggedInUsername)
         logoutButton = view.findViewById(R.id.logoutButton)
 
+        // get username from session
         loggedInUsername.text = (SessionManager::getUserName)()
 
+        // listener to destroy session
         logoutButton.setOnClickListener {
             (SessionManager::logout)()
         }

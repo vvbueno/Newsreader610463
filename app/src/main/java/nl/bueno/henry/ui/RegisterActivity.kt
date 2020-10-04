@@ -20,8 +20,10 @@ import retrofit2.Response
 
 class RegisterActivity : AppCompatActivity() {
 
+    // service to connect to the api
     private val authService: AuthService = Common.authService
 
+    // ui elements
     private lateinit var usernameField : EditText
     private lateinit var passwordField : EditText
     private lateinit var registerButton: Button
@@ -32,6 +34,7 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
+        // init ui variables
         usernameField = findViewById(R.id.usernameField)
         passwordField = findViewById(R.id.passwordField)
         registerButton = findViewById(R.id.registerButton)
@@ -43,6 +46,8 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun registerEvent(){
+
+        // check that both fields are not empty
         if(usernameField.text.isNotEmpty() && passwordField.text.isNotEmpty()) {
 
             val username: String = usernameField.text.toString()
@@ -52,12 +57,14 @@ class RegisterActivity : AppCompatActivity() {
                 Callback<RegisterResponse> {
 
                 override fun onResponse(call: Call<RegisterResponse>, response: Response<RegisterResponse>) {
-
+                    // this call only returns 200
                     if(response.code().toString() == "200" && response.body() != null){
                         val responseValue = response.body()
+                            // this property must be true in order to confirm we sucessfully created the user
                             if(!responseValue!!.Success){
                                 showError(getString(R.string.error_prevented_register))
                             }else{
+                                // if they are successfully registered, then log them into the app
                                 loginRegisteredUser(username, password)
                             }
                     }else{
@@ -66,8 +73,8 @@ class RegisterActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
+                    showError("Error ${t.message.toString()}")
                 }
             })
         }else{
@@ -85,7 +92,7 @@ class RegisterActivity : AppCompatActivity() {
                             Log.d(TAG, "Login successful")
                             (SessionManager::createLoginSession)(username, it)
                         }
-                        else -> { // Note the block
+                        else -> {
                             (SessionManager::logout)()
                         }
                     }
@@ -93,11 +100,12 @@ class RegisterActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                     Log.d(TAG, t.message.toString())
-                    (SessionManager::logout)()
+                    (SessionManager::logout)() // on error destroy the session so user can log in manually
                 }
             })
     }
 
+    // to go back to the previous activity emulating the back button on android
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {

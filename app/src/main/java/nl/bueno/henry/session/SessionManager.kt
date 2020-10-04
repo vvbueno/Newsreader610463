@@ -8,13 +8,18 @@ import nl.bueno.henry.MainActivity
 
 object SessionManager {
 
+    // preferred private mode
     private const val PRIVATE_MODE: Int = 0
+
+    // keys to retrieve variables from session
     private const val PREF_NAME: String = "Newsreader610463"
     private const val IS_LOGIN: String = "isLoggedIn"
     private const val KEY_USERNAME: String = "UserName"
     private const val KEY_XAUTHTOKEN: String = "x-authtoken"
 
+    // application context
     private var context : Context? = null
+
     private var preferences: SharedPreferences? = null
     private var editor: SharedPreferences.Editor? = null
 
@@ -46,12 +51,14 @@ object SessionManager {
         return preferences!!.getBoolean(IS_LOGIN, false)
     }
 
+    // destroy session
     fun logout(){
         editor!!.clear()
         editor!!.apply()
         reloadMainActivity()
     }
 
+    // reload and redirect to main activity
     private fun reloadMainActivity(){
         val intent = Intent(context, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)

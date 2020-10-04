@@ -28,13 +28,17 @@ import retrofit2.Response
 
 class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter<LikedArticlesAdapter.ViewHolder>() {
 
+    // Data list to be included in the recyclerview
     private var articles : MutableList<Article> = ArrayList()
 
+    // service used to like an article
     private val articleService: ArticleService = Common.articleService
 
+    // Colors for the like icon state
     private val likedColor: Int = Color.argb(255, 255, 0, 0)
     private val unLikedColor: Int = Color.argb(255, 128, 128, 128)
 
+    // loading state for when an item is being liked (to prevent liking or unliking before the current liking and unliking is finished)
     private var isBeingLiked: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -44,18 +48,22 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
         val holder = ViewHolder(view)
 
         view.setOnClickListener {
+            // Open the details page of the article
             val intent = Intent(parent.context, DetailsActivity::class.java)
             intent.putExtra("article", articles[holder.adapterPosition])
             parent.context.startActivity(intent)
         }
 
         view.likeIcon.setOnClickListener {
+
+            // if the user is not logged In, redirect them to the login screen
             if(!(SessionManager::isLoggedIn)()){
                 fragment.activity?.supportFragmentManager?.beginTransaction()?.apply {
                     replace(R.id.fl_wrapper, LoginFragment())
                     commit()
                 }
             }else{
+                // otherwise perform like action
                 if(!isBeingLiked){
                     isBeingLiked = true
                     likeArticle(holder)
@@ -65,11 +73,13 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
         return holder
     }
 
+    // update the list of articles to display
     fun addArticles(articles: List<Article>) {
         this.articles.addAll(articles)
         notifyDataSetChanged()
     }
 
+    // clear the list of articles
     fun clearArticles() {
         this.articles.removeAll(this.articles)
         notifyDataSetChanged()
@@ -80,11 +90,13 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
         val article = articles[position]
         holder.title.text = article.Title
 
+        // load view properties
         holder.thumbnail.load(article.Image){
             placeholder(R.drawable.ic_baseline_aspect_ratio_24)
             scale(Scale.FILL)
         }
 
+        // set color depending of the state of isLiked
         if(!article.IsLiked!!){
             holder.likeIcon.setColorFilter(unLikedColor)
         }else{
@@ -102,18 +114,18 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
 
     private fun likeArticle(holder: ViewHolder){
 
-        val article = articles[holder.adapterPosition]
+        val article = articles[holder.adapterPosition] // get current article
 
         if(!article.IsLiked!!){
 
             Log.d(TAG, "likeArticle")
 
-            articleService.unlikeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
+            articleService.likeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     when (response.code().toString()) {
                         "200" -> {
-                            Log.d(TAG, response.code().toString())
+                            // update article visually on 200 response
                             articles[holder.adapterPosition].IsLiked = true
                             holder.itemView.likeIcon.setColorFilter(likedColor)
                             notifyDataSetChanged()
@@ -125,7 +137,7 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                                 )
                             }
                         }
-                        else -> { // Note the block
+                        else -> {
                             fragment.context?.getString(R.string.unexpected_error)?.let {
                                 (ToastHelper::shortToast)(
                                     it
@@ -133,17 +145,18 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                             }
                         }
                     }
+                    // disable like load
                     isBeingLiked = false
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
                     fragment.context?.getString(R.string.liking_error)?.let {
                         (ToastHelper::shortToast)(
                             it
                         )
                     }
+                    // disable like load
                     isBeingLiked = false
                 }
             })
@@ -157,7 +170,7 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     when (response.code().toString()) {
                         "200" -> {
-                            Log.d(TAG, response.code().toString())
+                            // update article visually on 200 response
                             articles[holder.adapterPosition].IsLiked = false
                             articles.remove(articles[holder.adapterPosition])
                             notifyDataSetChanged()
@@ -169,7 +182,7 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                                 )
                             }
                         }
-                        else -> { // Note the block
+                        else -> {
                             fragment.context?.getString(R.string.unexpected_error)?.let {
                                 (ToastHelper::shortToast)(
                                     it
@@ -177,6 +190,7 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                             }
                         }
                     }
+                    // disable like load
                     isBeingLiked = false
                 }
 
@@ -188,6 +202,7 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                             it
                         )
                     }
+                    // disable like load
                     isBeingLiked = false
                 }
             })

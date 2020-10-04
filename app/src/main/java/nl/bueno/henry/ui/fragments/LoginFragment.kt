@@ -3,7 +3,6 @@ package nl.bueno.henry.ui.fragments
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,14 +21,14 @@ import retrofit2.Callback
 import retrofit2.Response
 
 /**
- * A simple [Fragment] subclass.
- * Use the [LoginFragment.newInstance] factory method to
- * create an instance of this fragment.
+ * A class to store the fragment that contains the login screen
  */
 class LoginFragment() : BaseFragment() {
 
+    // service to connect to the api
     private val authService: AuthService = Common.authService
 
+    // ui elements
     private lateinit var usernameField : EditText
     private lateinit var passwordField : EditText
     private lateinit var loginButton : Button
@@ -53,6 +52,7 @@ class LoginFragment() : BaseFragment() {
         Log.d(TAG, "onViewCreated")
         super.onViewCreated(view, savedInstanceState)
 
+        // init ui elements
         usernameField = view.findViewById(R.id.usernameField)
         passwordField = view.findViewById(R.id.passwordField)
 
@@ -65,6 +65,7 @@ class LoginFragment() : BaseFragment() {
             loginEvent()
         }
 
+        // redirect to register activity
         signUpLabel.setOnClickListener{
             val intent = Intent(this.context, RegisterActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -75,6 +76,7 @@ class LoginFragment() : BaseFragment() {
 
     fun loginEvent(){
 
+        // verify both username and password are present
         if(usernameField.text.isNotEmpty() && passwordField.text.isNotEmpty()) {
 
             val username: String = usernameField.text.toString()
@@ -94,9 +96,8 @@ class LoginFragment() : BaseFragment() {
                 }
 
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
-                    (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
+                    showError("Error: ${t.message.toString()}.")
                 }
             })
         }else{

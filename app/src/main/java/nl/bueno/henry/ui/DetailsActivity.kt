@@ -29,10 +29,13 @@ import java.text.SimpleDateFormat
 
 class DetailsActivity : AppCompatActivity() {
 
+    // service to connect to the api
     private val articleService: ArticleService = Common.articleService
 
+    // to store article being detailed
     private lateinit var article : Article
 
+    // ui elements
     private lateinit var articleTitle : TextView
     private lateinit var articleImage : ImageView
     private lateinit var likeIcon : ImageButton
@@ -43,9 +46,11 @@ class DetailsActivity : AppCompatActivity() {
     private lateinit var relatedLabel : TextView
     private lateinit var articleRelatedLinks : TextView
 
+    // like icon color state
     private val likedColor: Int = android.graphics.Color.argb(255, 255, 0, 0)
     private val unLikedColor: Int = android.graphics.Color.argb(255, 128, 128, 128)
 
+    // loading state for when an item is being liked (to prevent liking or unliking before the current liking and unliking is finished)
     private var isBeingLiked: Boolean = false
 
     @SuppressLint("SimpleDateFormat")
@@ -55,8 +60,10 @@ class DetailsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
 
+        // enable back button
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        // init ui elements
         articleTitle = findViewById(R.id.articleTitle)
         articleImage = findViewById(R.id.articleImage)
         likeIcon = findViewById(R.id.likeIcon)
@@ -67,8 +74,10 @@ class DetailsActivity : AppCompatActivity() {
         relatedLabel = findViewById(R.id.relatedLabel)
         articleRelatedLinks = findViewById(R.id.articleRelatedLinks)
 
+        // get the passed article from the intent
         article = (intent.getSerializableExtra("article") as? Article)!!
 
+        // set attributes of the article in the view
         articleTitle.text = article.Title
         articleImage.load(article.Image)
 
@@ -80,12 +89,14 @@ class DetailsActivity : AppCompatActivity() {
 
         articleSummary.text = Html.fromHtml(article.Summary, Html.FROM_HTML_MODE_COMPACT)
 
+        // parse date into May 03, 2020
         val parser =  SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         val formatter = SimpleDateFormat("MMMM dd, yyyy")
         val formattedDate = formatter.format(parser.parse(article.PublishDate!!))
 
         dateLabel.text = formattedDate
 
+        // append a element to label
         articleUrl.append(
             " " + Html.fromHtml(
                 "<a href=\"${article.Url}\">${article.Url}</a>",
@@ -95,10 +106,13 @@ class DetailsActivity : AppCompatActivity() {
 
         val categories = article.Categories as ArrayList<Category>
 
+        // for each category append it to the tags label
         if(categories.size > 0){
             tagsLabel.visibility = View.VISIBLE
             categories.forEachIndexed { index, element ->
                 tagsLabel.append(" ${element.Name}")
+
+                // don't add comma on last element
                 if(index != categories.size -1){
                     tagsLabel.append(",")
                 }
@@ -107,6 +121,7 @@ class DetailsActivity : AppCompatActivity() {
 
         val relatedLinks = article.Related as ArrayList<String>
 
+        // for each related append it to the relatedLinks text as a html
         if(relatedLinks.size > 0){
             relatedLabel.visibility = View.VISIBLE
             relatedLinks.forEach {
@@ -121,6 +136,7 @@ class DetailsActivity : AppCompatActivity() {
         }
 
         likeIcon.setOnClickListener{
+            // only like while we are not already liking
             if(!isBeingLiked){
                 isBeingLiked = true
                 likeArticle(article)
@@ -128,11 +144,7 @@ class DetailsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
-    }
-
+    // to go back to the previous activity emulating the back button on android
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -165,14 +177,15 @@ class DetailsActivity : AppCompatActivity() {
                             (ToastHelper::shortToast)(getString(R.string.unexpected_error))
                         }
                     }
+
+                    // disable like loading
                     isBeingLiked = false
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
                     (ToastHelper::shortToast)(getString(R.string.liking_error))
-                    isBeingLiked = false
+                    isBeingLiked = false  // disable like loading
                 }
             })
 
@@ -197,14 +210,15 @@ class DetailsActivity : AppCompatActivity() {
                                 (ToastHelper::shortToast)(getString(R.string.unexpected_error))
                             }
                         }
+
+                        // disable like loading
                         isBeingLiked = false
                     }
 
                     override fun onFailure(call: Call<Void>, t: Throwable) {
-                        Log.d(TAG, "The call failed")
                         Log.d(TAG, t.message.toString())
                         (ToastHelper::shortToast)(getString(R.string.liking_error))
-                        isBeingLiked = false
+                        isBeingLiked = false  // disable like loading
                     }
                 })
         }

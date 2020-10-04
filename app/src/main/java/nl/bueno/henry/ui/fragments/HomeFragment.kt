@@ -31,53 +31,48 @@ import java.util.concurrent.TimeoutException
 
 
 /**
- * A simple [Fragment] subclass.
- * Use the [HomeFragment.newInstance] factory method to
- * create an instance of this fragment.
+ * A class to store the fragment that contains the articles (home) screen
  */
 class HomeFragment() : BaseFragment() {
 
+    // service used to connect with api
     private val articleService: ArticleService = Common.articleService
 
+    // recycler view properties
     private lateinit var adapter: ArticlesAdapter
     private lateinit var layoutManager: LinearLayoutManager
 
+    // ui elements
     private lateinit var articlesNestedScrollView: NestedScrollView
     private lateinit var articlesSwipeRefresh: SwipeRefreshLayout
     private lateinit var articlesRecyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
     private lateinit var errorLabel : TextView
 
-
-    private var nextId: Int? = null
-    private var isLoading: Boolean = false
-    private val limitPerPage : Int = 20
+    private var nextId: Int? = null // store the next page of the articles to load increasingly
+    private var isLoading: Boolean = false // to define whether we are loading new articles at the moment
+    private val limitPerPage : Int = 20 // maximum articles to fetch at a time
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
     }
 
-    private fun showError(message: String){
-        errorLabel.visibility = View.VISIBLE
-        errorLabel.text = message
-    }
-
-    private fun hideError(){
-        errorLabel.visibility = View.GONE
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // init ui elements
         progressBar = view.findViewById(R.id.progressBar)
         errorLabel = view.findViewById(R.id.errorLabel)
 
+        // add articles to ui
         getArticles(null)
 
+        // listener for when we pull the screen down to refresh
         articlesSwipeRefresh.setOnRefreshListener(
             object : SwipeRefreshLayout.OnRefreshListener {
                 override fun onRefresh() {
+                    // only perform operations while we are not loading
                     if (!isLoading) {
                         isLoading = true
                         getArticles(null)
@@ -85,6 +80,7 @@ class HomeFragment() : BaseFragment() {
                 }
             })
 
+        // listener to load more articles when reaching the bottom
         articlesNestedScrollView.setOnScrollChangeListener(
             object : NestedScrollView.OnScrollChangeListener {
                 override fun onScrollChange(
@@ -94,11 +90,11 @@ class HomeFragment() : BaseFragment() {
                     oldScrollX: Int,
                     oldScrollY: Int
                 ) {
+                    // only perform operations while we are not loading
                     if (!isLoading) {
+                        // defines reaching bottom
                         if (scrollY == (v.getChildAt(0).measuredHeight - v.measuredHeight)) {
-                            //(ToastHelper::shortToast)("loading 20 more")
                             showLoader()
-                            Log.d(TAG, "nextId: $nextId")
                             getArticles(nextId)
                         }
                     }
@@ -115,10 +111,12 @@ class HomeFragment() : BaseFragment() {
 
         val view =  inflater.inflate(fragment_home, container, false)
 
+        // init ui elements
         articlesRecyclerView = view.findViewById(R.id.articlesRv)
         articlesNestedScrollView = view.findViewById(R.id.articlesNestedScrollView)
         articlesSwipeRefresh = view.findViewById(R.id.articlesSwipeRefresh)
 
+        // init rv properties
         layoutManager = LinearLayoutManager(this.context)
         adapter = ArticlesAdapter(this)
 
@@ -128,20 +126,12 @@ class HomeFragment() : BaseFragment() {
         return view
     }
 
-    fun showLoader(){
-        isLoading = true
-        progressBar.visibility = View.VISIBLE
-    }
-
-    fun hideLoader(){
-        isLoading = false
-        progressBar.visibility = View.GONE
-    }
-
     private fun getArticles(nextArticleId: Int?){
 
+        // hide any error while we fetch articles
         hideError()
 
+        // if we dont have a nextId, fetch the most recent articles, otherwise load them incrementally
         if(nextArticleId == null){
             Log.d(TAG, "getLatestArticles")
             articleService.getLatestArticles(limitPerPage, (SessionManager::getAuthToken)()).enqueue(
@@ -151,17 +141,23 @@ class HomeFragment() : BaseFragment() {
                         response: Response<ArticlesResponse>
                     ) {
                         if (response.body() != null) {
+
+                            // this check is performed to reset the view when refreshing,
+                            // if there are items, clear the rv
                             if (adapter.itemCount > 0) {
                                 adapter.clearArticles()
                             }
+
                             nextId = response.body()!!.NextId
                             adapter.addArticles(response.body()!!.Results)
 
+                            // if no articles found, display error
                             if (adapter.itemCount == 0) {
                                 showError(getString(R.string.no_articles_found))
                             }
 
                         } else {
+                            showError(getString(R.string.no_articles_found))
                             Log.d(TAG, response.code().toString())
                         }
                         articlesSwipeRefresh.isRefreshing = false
@@ -171,15 +167,15 @@ class HomeFragment() : BaseFragment() {
                     override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                         Log.d(TAG, "getLatestArticles failed, reason ${t.message.toString()}")
 
-                        if (t is UnknownHostException) {
+                        if (t is UnknownHostException) { // catch internet error
                             showError(getString(R.string.internet_error_get_articles))
-                        } else if (t is TimeoutException) {
+                        } else if (t is TimeoutException) { // catch timeout error
                             showError(getString(R.string.error_refresh))
                         } else {
                             showError("Error: ${t.message.toString()}.")
                         }
 
-                        (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
+                        // hide loaders
                         articlesSwipeRefresh.isRefreshing = false
                         hideLoader()
                     }
@@ -207,22 +203,24 @@ class HomeFragment() : BaseFragment() {
                     } else {
                         Log.d(TAG, response.code().toString())
                     }
+
+                    articlesSwipeRefresh.isRefreshing = false
                     hideLoader()
                 }
 
                 override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                     Log.d(TAG, "getNextArticles failed, reason ${t.message.toString()}")
 
-                    if (t is UnknownHostException) {
+                    if (t is UnknownHostException) { // catch internet error
                         showError("Could not get articles. Please check your internet connection")
                         showError(getString(R.string.internet_error_get_articles))
-                    } else if (t is TimeoutException) {
+                    } else if (t is TimeoutException) { // catch timeout error
                         showError(getString(R.string.error_refresh))
-                    } else {
+                    } else { // other errors
                         showError("Error: ${t.message.toString()}.")
                     }
 
-                    (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
+                    // hide loaders
                     articlesSwipeRefresh.isRefreshing = false
                     hideLoader()
                 }
@@ -230,15 +228,23 @@ class HomeFragment() : BaseFragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        adapter.notifyDataSetChanged()
+    fun showLoader(){
+        isLoading = true
+        progressBar.visibility = View.VISIBLE
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id: Int = item.itemId
-        //do something with your id
-        return super.onOptionsItemSelected(item)
+    fun hideLoader(){
+        isLoading = false
+        progressBar.visibility = View.GONE
+    }
+
+    private fun showError(message: String){
+        errorLabel.visibility = View.VISIBLE
+        errorLabel.text = message
+    }
+
+    private fun hideError(){
+        errorLabel.visibility = View.GONE
     }
 
     companion object {
