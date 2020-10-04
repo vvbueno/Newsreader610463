@@ -8,25 +8,24 @@ import nl.bueno.henry.MainActivity
 
 object SessionManager {
 
+    private const val PRIVATE_MODE: Int = 0
+    private const val PREF_NAME: String = "Newsreader610463"
+    private const val IS_LOGIN: String = "isLoggedIn"
+    private const val KEY_USERNAME: String = "UserName"
+    private const val KEY_XAUTHTOKEN: String = "x-authtoken"
+
     private var context : Context? = null
     private var preferences: SharedPreferences? = null
     private var editor: SharedPreferences.Editor? = null
 
 
+    @SuppressLint("CommitPrefEdits")
     fun setup(context: Context){
         this.context = context
         preferences = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE)
         editor = preferences!!.edit()
     }
 
-    private const val PRIVATE_MODE: Int = 0
-    const val PREF_NAME: String = "Newsreader610463"
-    private const val IS_LOGIN: String = "isLoggedIn"
-    const val KEY_USERNAME: String = "UserName"
-    const val KEY_XAUTHTOKEN: String = "x-authtoken"
-
-
-    @SuppressLint("CommitPrefEdits")
     fun createLoginSession(username: String, xauthtoken: String){
         editor!!.putBoolean(IS_LOGIN, true)
         editor!!.putString(KEY_USERNAME, username)
@@ -34,7 +33,6 @@ object SessionManager {
         editor!!.commit()
         reloadMainActivity()
     }
-
 
     fun getUserName(): String? {
         return preferences!!.getString(KEY_USERNAME, null)
@@ -48,7 +46,6 @@ object SessionManager {
         return preferences!!.getBoolean(IS_LOGIN, false)
     }
 
-    @SuppressLint("CommitPrefEdits")
     fun logout(){
         editor!!.clear()
         editor!!.apply()

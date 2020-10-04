@@ -1,5 +1,7 @@
 package nl.bueno.henry.model
 
+import java.io.Serializable
+
 data class Article(
     val Id: Int,
     val Feed: Int?,
@@ -11,4 +13,4 @@ data class Article(
     val Related: List<String>?,
     val Categories: List<Category>?,
     var IsLiked: Boolean?
-)
+)  : Serializable

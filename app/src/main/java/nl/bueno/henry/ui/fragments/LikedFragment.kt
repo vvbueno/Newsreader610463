@@ -1,5 +1,6 @@
 package nl.bueno.henry.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -9,13 +10,16 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import nl.bueno.henry.adapter.ArticlesAdapter
 import nl.bueno.henry.common.Common
 import nl.bueno.henry.service.ArticleService
 import nl.bueno.henry.service.response.ArticlesResponse
 import nl.bueno.henry.R
 import nl.bueno.henry.R.layout.fragment_liked
+import nl.bueno.henry.adapter.LikedArticlesAdapter
 import nl.bueno.henry.session.SessionManager
+import nl.bueno.henry.utils.ToastHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,13 +30,14 @@ import retrofit2.Response
  * Use the [LikedFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class LikedFragment() : BaseFragment() {
+class LikedFragment : BaseFragment() {
 
     private val articleService: ArticleService = Common.articleService
 
-    private lateinit var adapter: ArticlesAdapter
+    private lateinit var adapter: LikedArticlesAdapter
     private lateinit var layoutManager: LinearLayoutManager
 
+    private lateinit var articlesSwipeRefresh: SwipeRefreshLayout
     private lateinit var articlesRecyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
 
@@ -44,23 +49,39 @@ class LikedFragment() : BaseFragment() {
         Log.d(TAG, "onCreate called")
     }
 
+    override fun onResume() {
+        Log.d(TAG, "onResume: called")
+        super.onResume()
+
+        if(adapter.itemCount > 0){
+            adapter.clearArticles()
+            showLoader()
+            getLikedArticles()
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        Log.d(TAG, "onActivityResult: called")
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         progressBar = view.findViewById(R.id.progressBar)
 
+        articlesSwipeRefresh.setOnRefreshListener (
+            object: SwipeRefreshLayout.OnRefreshListener {
+                override fun onRefresh() {
+                    if(!isLoading){
+                        isLoading = true
+                        getLikedArticles()
+                    }
+                }
+            })
+
         showLoader()
         getLikedArticles()
-    }
-
-    private fun showLoader(){
-        isLoading = true
-        progressBar.visibility = View.VISIBLE
-    }
-
-    fun hideLoader(){
-        isLoading = false
-        progressBar.visibility = View.GONE
     }
 
     override fun onCreateView(inflater: LayoutInflater,
@@ -70,13 +91,25 @@ class LikedFragment() : BaseFragment() {
         val view =  inflater.inflate(fragment_liked, container, false)
 
         articlesRecyclerView = view.findViewById(R.id.likedArticlesRv)
-
+        articlesSwipeRefresh = view.findViewById(R.id.articlesSwipeRefresh)
         layoutManager = LinearLayoutManager(this.context)
-        adapter = ArticlesAdapter(this)
+        adapter = LikedArticlesAdapter(this)
 
         articlesRecyclerView.layoutManager = layoutManager
         articlesRecyclerView.adapter = adapter
+
+
         return view
+    }
+
+    private fun showLoader(){
+        isLoading = true
+        progressBar.visibility = View.VISIBLE
+    }
+
+    private fun hideLoader(){
+        isLoading = false
+        progressBar.visibility = View.GONE
     }
 
     private fun getLikedArticles(){
@@ -85,19 +118,22 @@ class LikedFragment() : BaseFragment() {
                 Callback<ArticlesResponse> {
                 override fun onResponse(call: Call<ArticlesResponse>, response: Response<ArticlesResponse>) {
                     if(response.body() != null){
+                        if(adapter.itemCount > 0){
+                            adapter.clearArticles()
+                        }
                         nextId = response.body()!!.NextId
                         adapter.addArticles(response.body()!!.Results)
-                        hideLoader()
+                    }else{
+                        Log.d(TAG, response.code().toString())
                     }
+                    articlesSwipeRefresh.isRefreshing = false
+                    hideLoader()
                 }
                 override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
-                    Log.d(TAG, t.message.toString())
-                    if( t.message.toString() == "timeout"){
-                        Log.d("ApiResponse", "Trying again....")
-                        getLikedArticles()
-                    }
-                    //hideLoader()
+                    Log.d(TAG, "getLikedArticles failed, reason ${t.message.toString()}")
+                    articlesSwipeRefresh.isRefreshing = false
+                    hideLoader()
+                    (ToastHelper::shortToast)("Error: ${t.message.toString()}. Try again.")
                 }
             })
     }

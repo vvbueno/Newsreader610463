@@ -19,33 +19,50 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+
             <ImageView
                 android:id="@+id/articleImage"
                 android:layout_width="0dp"
                 android:layout_height="300dp"
                 android:scaleType="centerCrop"
                 android:transitionName="photoToAnimate"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:src="@tools:sample/backgrounds/scenic" />
 
-
             <TextView
                 android:id="@+id/articleTitle"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
                 android:textColor="#000000"
                 android:textSize="24sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.044"
+                android:paddingStart="0dp"
+                android:paddingEnd="15dp"
+                app:layout_constraintEnd_toStartOf="@+id/likeIcon"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/articleImage"
                 tools:text="This is an article title" />
+
+            <ImageButton
+                android:id="@+id/likeIcon"
+                android:layout_width="52dp"
+                android:layout_height="57dp"
+                android:layout_marginEnd="16dp"
+                android:background="@null"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_baseline_favorite_24"
+                android:tint="#808080"
+                app:layout_constraintBottom_toTopOf="@+id/articleSummary"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/articleImage"
+                android:contentDescription="Like Icon" />
 
             <TextView
                 android:id="@+id/articleSummary"
@@ -54,7 +71,6 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                android:text="description here\ndescription here\n"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.045"
                 app:layout_constraintStart_toStartOf="parent"

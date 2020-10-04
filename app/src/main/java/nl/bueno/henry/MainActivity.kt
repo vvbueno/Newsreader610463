@@ -1,15 +1,17 @@
 package nl.bueno.henry
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import nl.bueno.henry.session.SessionManager
 import nl.bueno.henry.ui.fragments.HomeFragment
 import nl.bueno.henry.ui.fragments.LikedFragment
 import nl.bueno.henry.ui.fragments.LoginFragment
 import nl.bueno.henry.ui.fragments.ProfileFragment
+import nl.bueno.henry.utils.ToastHelper
 
 
 class MainActivity : AppCompatActivity() {
@@ -24,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation = findViewById(R.id.bottom_navigation)
 
         (SessionManager::setup)(applicationContext)
+        (ToastHelper::setup)(applicationContext)
 
         val homeFragment = HomeFragment()
         val likedFragment = LikedFragment()

@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -30,7 +32,7 @@ class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter
     private val articleService: ArticleService = Common.articleService
 
     private val likedColor: Int = Color.argb(255, 255, 0, 0)
-    private val unLikedColor: Int = Color.argb(255, 0, 0, 0)
+    private val unLikedColor: Int = Color.argb(255, 128, 128, 128)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
@@ -40,27 +42,7 @@ class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter
 
         view.setOnClickListener {
             val intent = Intent(parent.context, DetailsActivity::class.java)
-            intent.putExtra("articleTitle", articles[holder.adapterPosition].Title)
-            intent.putExtra("articleSummary", articles[holder.adapterPosition].Summary)
-
-            intent.putExtra(
-                "articlePublishDate",
-                articles[holder.adapterPosition].PublishDate
-            )
-            intent.putExtra("articleImage", articles[holder.adapterPosition].Image)
-            intent.putExtra("articleUrl", articles[holder.adapterPosition].Url)
-
-            val related = articles[holder.adapterPosition].Related as ArrayList<String>
-            Log.d("TEST", related.toString())
-            intent.putExtra("articleRelatedLinks", related)
-
-            val categories = articles[holder.adapterPosition].Categories as ArrayList<Category>
-
-            intent.putExtra(
-                "articleCategories",
-                categories
-            )
-            intent.putExtra("articleIsLiked", articles[holder.adapterPosition].IsLiked)
+            intent.putExtra("article", articles[holder.adapterPosition])
             parent.context.startActivity(intent)
         }
 
@@ -74,34 +56,53 @@ class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter
                 likeArticle(holder)
             }
         }
+
         return holder
     }
 
     fun addArticles(articles: List<Article>) {
         this.articles.addAll(articles)
+        notifyItemInserted( this.articles.size - 1);
+    }
+
+    fun clearArticles() {
+        this.articles.removeAll(this.articles)
         notifyDataSetChanged()
     }
+
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         //   Log.d("ApiResponse", "adding a new article to the view")
         val article = articles[position]
         holder.title.text = article.Title
-        holder.itemView.thumbnail.load(article.Image)//{
+
+        holder.thumbnail.load(article.Image)//{
         //       placeholder(R.drawable.ic_baseline_aspect_ratio_24)
         //  }
+
+        if(!article.IsLiked!!){
+            holder.likeIcon.setColorFilter(unLikedColor)
+        }else{
+            holder.likeIcon.setColorFilter(likedColor)
+        }
     }
 
     override fun getItemCount() = articles.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         val title: TextView = itemView.title
+        val thumbnail: ImageView = itemView.thumbnail
+        val likeIcon: ImageButton = itemView.likeIcon
     }
 
     private fun likeArticle(holder: ViewHolder){
-        Log.d("ApiResponse", "likeArticle")
+
         val article = articles[holder.adapterPosition]
 
         if(!article.IsLiked!!){
+
+            Log.d("ApiResponse", "likeArticle")
+
             articleService.likeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
@@ -114,7 +115,11 @@ class ArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Adapter
                     Log.d("ApiResponse error", t.message.toString())
                 }
             })
+
         }else{
+
+            Log.d("ApiResponse", "unlikeArticle")
+
             articleService.unlikeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
