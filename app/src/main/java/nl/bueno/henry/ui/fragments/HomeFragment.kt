@@ -172,7 +172,7 @@ class HomeFragment() : BaseFragment() {
                         } else if (t is TimeoutException) { // catch timeout error
                             showError(getString(R.string.error_refresh))
                         } else {
-                            showError("Error: ${t.message.toString()}.")
+                            showError("${getString(R.string.error_refresh)}. Error: ${t.message.toString()}.")
                         }
 
                         // hide loaders
@@ -217,7 +217,7 @@ class HomeFragment() : BaseFragment() {
                     } else if (t is TimeoutException) { // catch timeout error
                         showError(getString(R.string.error_refresh))
                     } else { // other errors
-                        showError("Error: ${t.message.toString()}.")
+                        showError("${getString(R.string.error_refresh)}. Error: ${t.message.toString()}.")
                     }
 
                     // hide loaders

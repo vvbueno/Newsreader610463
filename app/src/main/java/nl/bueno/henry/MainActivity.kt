@@ -37,27 +37,27 @@ class MainActivity : AppCompatActivity() {
         if((SessionManager::isLoggedIn)()){
             profileFragment = ProfileFragment()
             likedFragment = LikedFragment()
-            makeCurrentFragment(profileFragment, "PROFILE")
+            makeCurrentFragment(profileFragment)
         }else{ // if the user is not logged in, redirect user to the login page on the profile and liked tab
             profileFragment = LoginFragment()
             likedFragment = profileFragment
-            makeCurrentFragment(homeFragment, "HOME")
+            makeCurrentFragment(homeFragment)
         }
-        
+
         bottomNavigation.setOnNavigationItemSelectedListener {
             when(it.itemId){
-                R.id.navHome -> makeCurrentFragment(homeFragment, "HOME")
-                R.id.navLiked -> makeCurrentFragment(likedFragment, "LIKED")
-                R.id.navProfile -> makeCurrentFragment(profileFragment, "PROFILE")
+                R.id.navHome -> makeCurrentFragment(homeFragment)
+                R.id.navLiked -> makeCurrentFragment(likedFragment)
+                R.id.navProfile -> makeCurrentFragment(profileFragment)
             }
             true
         }
     }
 
     // a function to change current fragment in place
-    private fun makeCurrentFragment(fragment: Fragment, tag: String) =
+    private fun makeCurrentFragment(fragment: Fragment) =
         supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fl_wrapper, fragment, tag)
+            replace(R.id.fl_wrapper, fragment)
             commit()
         }
 
