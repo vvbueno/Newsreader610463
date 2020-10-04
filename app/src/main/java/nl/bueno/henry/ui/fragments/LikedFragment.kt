@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -23,6 +24,8 @@ import nl.bueno.henry.utils.ToastHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.net.UnknownHostException
+import java.util.concurrent.TimeoutException
 
 
 /**
@@ -40,6 +43,7 @@ class LikedFragment : BaseFragment() {
     private lateinit var articlesSwipeRefresh: SwipeRefreshLayout
     private lateinit var articlesRecyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
+    private lateinit var errorLabel : TextView
 
     private var nextId: Int? = null
     private var isLoading: Boolean = false
@@ -47,6 +51,15 @@ class LikedFragment : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
+    }
+
+    private fun showError(message: String){
+        errorLabel.visibility = View.VISIBLE
+        errorLabel.text = message
+    }
+
+    private fun hideError(){
+        errorLabel.visibility = View.GONE
     }
 
     override fun onResume() {
@@ -60,15 +73,11 @@ class LikedFragment : BaseFragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        Log.d(TAG, "onActivityResult: called")
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         progressBar = view.findViewById(R.id.progressBar)
+        errorLabel = view.findViewById(R.id.errorLabel)
 
         articlesSwipeRefresh.setOnRefreshListener (
             object: SwipeRefreshLayout.OnRefreshListener {
@@ -123,6 +132,10 @@ class LikedFragment : BaseFragment() {
                         }
                         nextId = response.body()!!.NextId
                         adapter.addArticles(response.body()!!.Results)
+
+                        if(adapter.itemCount == 0){
+                            showError(getString(R.string.no_articles_yet))
+                        }
                     }else{
                         Log.d(TAG, response.code().toString())
                     }
@@ -131,9 +144,18 @@ class LikedFragment : BaseFragment() {
                 }
                 override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                     Log.d(TAG, "getLikedArticles failed, reason ${t.message.toString()}")
+
+                    if(t is UnknownHostException){
+                        showError(getString(R.string.internet_error_get_articles))
+                    }else if(t is TimeoutException){
+                        showError(getString(R.string.error_refresh))
+                    }else{
+                        showError("Error: ${t.message.toString()}.")
+                    }
+
+                    (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
                     articlesSwipeRefresh.isRefreshing = false
                     hideLoader()
-                    (ToastHelper::shortToast)("Error: ${t.message.toString()}. Try again.")
                 }
             })
     }

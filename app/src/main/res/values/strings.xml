@@ -20,4 +20,27 @@
     values-round/strings.xml for round devices.
     -->
     <string name="hello_world">Hello Square World!</string>
+    <string name="user_name">Username</string>
+    <string name="password">Password</string>
+    <string name="log_in">Log in</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="you_are_logged_in_as">You are logged in as:</string>
+    <string name="log_out">Log out</string>
+    <string name="thumbnail_of_the_article">Thumbnail of the article</string>
+    <string name="like_icon_to_favorite_an_article">Like icon to favorite an article</string>
+    <string name="placeholder_of_user_profile">Placeholder of user profile</string>
+    <string name="register">Register</string>
+    <string name="articles">Articles</string>
+    <string name="liked">Liked</string>
+    <string name="profile">Profile</string>
+    <string name="fields_required">Both username and password are required</string>
+    <string name="fields_mismatch">The username and password mismatch</string>
+    <string name="no_articles_yet">You have no articles liked yet.</string>
+    <string name="no_articles_found">No articles were found.</string>
+    <string name="unexpected_error">An unexpected error has occurred</string>
+    <string name="internet_error_get_articles">Could not get articles. Please check your internet connection</string>
+    <string name="error_refresh">An error occurred getting your articles. Pull the screen to refresh.</string>
+    <string name="unauthenticated">Unauthenticated. Log in first.</string>
+    <string name="liking_error">An error occurred liking an article. Try again.</string>
+    <string name="error_prevented_register">An unknown error prevented register. Please try again later.</string>
 </resources>

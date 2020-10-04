@@ -29,7 +29,7 @@
             android:drawablePadding="10dp"
             android:drawableStart="@drawable/ic_baseline_person_24"
             android:ems="10"
-            android:hint="User Name"
+            android:hint="@string/user_name"
             android:inputType="textPersonName"
             android:padding="10dp"
             android:textColor="@color/colorPrimary"
@@ -44,7 +44,7 @@
             android:drawablePadding="10dp"
             android:drawableStart="@drawable/ic_baseline_person_24"
             android:ems="10"
-            android:hint="Password"
+            android:hint="@string/password"
             android:inputType="textPassword"
             android:padding="10dp"
             android:textColor="@color/colorPrimary"
@@ -57,10 +57,21 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginBottom="30dp"
-            android:text="Register"
+            android:text="@string/register"
             android:textAllCaps="false"
             android:textColor="@color/colorPrimary"
             android:textSize="21sp" />
+
+        <TextView
+            android:id="@+id/errorLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:textStyle="bold|italic"
+            android:textColor="@color/colorPrimary"
+            android:textSize="18sp" />
 
     </LinearLayout>
 

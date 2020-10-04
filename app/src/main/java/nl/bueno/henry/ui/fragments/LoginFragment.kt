@@ -16,6 +16,7 @@ import nl.bueno.henry.R
 import nl.bueno.henry.service.response.LoginResponse
 import nl.bueno.henry.ui.RegisterActivity
 import nl.bueno.henry.session.SessionManager
+import nl.bueno.henry.utils.ToastHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,6 +34,7 @@ class LoginFragment() : BaseFragment() {
     private lateinit var passwordField : EditText
     private lateinit var loginButton : Button
     private lateinit var signUpLabel : TextView
+    private lateinit var errorLabel : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
@@ -57,6 +59,7 @@ class LoginFragment() : BaseFragment() {
         loginButton = view.findViewById(R.id.loginButton)
 
         signUpLabel = view.findViewById(R.id.signUpLabel)
+        errorLabel = view.findViewById(R.id.errorLabel)
 
         loginButton.setOnClickListener {
             loginEvent()
@@ -93,10 +96,11 @@ class LoginFragment() : BaseFragment() {
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
                     Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
+                    (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
                 }
             })
         }else{
-            Log.d(TAG, "both fields are required")
+            showError(getString(R.string.fields_required))
         }
     }
 
@@ -107,15 +111,25 @@ class LoginFragment() : BaseFragment() {
 
     fun unauthorizedLogin(){
         Log.d(TAG, "Login unauthorized")
-        (SessionManager::logout)()
+        (ToastHelper::shortToast)(getString(R.string.fields_mismatch))
+        showError(getString(R.string.fields_mismatch))
     }
 
     fun badRequestLogin(){
         Log.d(TAG, "Login bad request")
+        (ToastHelper::shortToast)(getString(R.string.fields_required))
+        showError(getString(R.string.fields_required))
     }
 
     fun elseLogin(){
         Log.d(TAG, "Login something else happened")
+        (ToastHelper::shortToast)(getString(R.string.unexpected_error))
+        showError(getString(R.string.unexpected_error))
+    }
+
+    private fun showError(message: String){
+        errorLabel.visibility = View.VISIBLE
+        errorLabel.text = message
     }
 
     companion object {

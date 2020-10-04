@@ -4,19 +4,19 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import nl.bueno.henry.session.SessionManager
-import nl.bueno.henry.ui.fragments.HomeFragment
-import nl.bueno.henry.ui.fragments.LikedFragment
-import nl.bueno.henry.ui.fragments.LoginFragment
-import nl.bueno.henry.ui.fragments.ProfileFragment
+import nl.bueno.henry.ui.fragments.*
 import nl.bueno.henry.utils.ToastHelper
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bottomNavigation : BottomNavigationView
+
+    private lateinit var homeFragment : BaseFragment
+    private lateinit var likedFragment : BaseFragment
+    private lateinit var profileFragment : BaseFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
@@ -28,33 +28,31 @@ class MainActivity : AppCompatActivity() {
         (SessionManager::setup)(applicationContext)
         (ToastHelper::setup)(applicationContext)
 
-        val homeFragment = HomeFragment()
-        val likedFragment = LikedFragment()
-        val profileFragment : Fragment
+        homeFragment = HomeFragment()
 
         if((SessionManager::isLoggedIn)()){
             profileFragment = ProfileFragment()
-            bottomNavigation.menu.findItem(R.id.navLiked).isEnabled = true
-            makeCurrentFragment(profileFragment)
+            likedFragment = LikedFragment()
+            makeCurrentFragment(profileFragment, "PROFILE")
         }else{
             profileFragment = LoginFragment()
-            bottomNavigation.menu.findItem(R.id.navLiked).isEnabled = false
-            makeCurrentFragment(homeFragment)
+            likedFragment = profileFragment
+            makeCurrentFragment(homeFragment, "HOME")
         }
 
         bottomNavigation.setOnNavigationItemSelectedListener {
             when(it.itemId){
-                R.id.navHome -> makeCurrentFragment(homeFragment)
-                R.id.navLiked -> makeCurrentFragment(likedFragment)
-                R.id.navProfile -> makeCurrentFragment(profileFragment)
+                R.id.navHome -> makeCurrentFragment(homeFragment, "HOME")
+                R.id.navLiked -> makeCurrentFragment(likedFragment, "LIKED")
+                R.id.navProfile -> makeCurrentFragment(profileFragment, "PROFILE")
             }
             true
         }
     }
 
-    private fun makeCurrentFragment(fragment: Fragment) =
+    private fun makeCurrentFragment(fragment: Fragment, tag: String) =
         supportFragmentManager.beginTransaction().apply {
-            replace(R.id.fl_wrapper, fragment)
+            replace(R.id.fl_wrapper, fragment, tag)
             commit()
         }
 

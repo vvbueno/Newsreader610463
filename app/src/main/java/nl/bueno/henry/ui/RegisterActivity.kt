@@ -3,11 +3,11 @@ package nl.bueno.henry.ui
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import kotlinx.android.synthetic.main.activity_register.*
-import kotlinx.android.synthetic.main.activity_register.passwordField
-import kotlinx.android.synthetic.main.activity_register.usernameField
+import android.widget.TextView
 import nl.bueno.henry.R
 import nl.bueno.henry.common.Common
 import nl.bueno.henry.service.AuthService
@@ -25,6 +25,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var usernameField : EditText
     private lateinit var passwordField : EditText
     private lateinit var registerButton: Button
+    private lateinit var errorLabel : TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate called")
@@ -33,7 +34,8 @@ class RegisterActivity : AppCompatActivity() {
 
         usernameField = findViewById(R.id.usernameField)
         passwordField = findViewById(R.id.passwordField)
-        registerButton = findViewById(R.id.loginButton)
+        registerButton = findViewById(R.id.registerButton)
+        errorLabel = findViewById(R.id.errorLabel)
 
         registerButton.setOnClickListener {
             registerEvent()
@@ -54,13 +56,12 @@ class RegisterActivity : AppCompatActivity() {
                     if(response.code().toString() == "200" && response.body() != null){
                         val responseValue = response.body()
                             if(!responseValue!!.Success){
-                                Log.d(TAG, "something prevented register")
+                                showError(getString(R.string.error_prevented_register))
                             }else{
-                                Log.d(TAG, "register successfull")
                                 loginRegisteredUser(username, password)
                             }
                     }else{
-                        Log.d(TAG, "something prevented register")
+                        showError(getString(R.string.error_prevented_register))
                     }
                 }
 
@@ -70,7 +71,7 @@ class RegisterActivity : AppCompatActivity() {
                 }
             })
         }else{
-            Log.d(TAG, "both fields are required")
+            showError(getString(R.string.fields_required))
         }
     }
 
@@ -85,18 +86,33 @@ class RegisterActivity : AppCompatActivity() {
                             (SessionManager::createLoginSession)(username, it)
                         }
                         else -> { // Note the block
-                            Log.d(TAG, "something else prevented the login")
+                            (SessionManager::logout)()
                         }
                     }
                 }
 
                 override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    Log.d(TAG, "The call failed")
                     Log.d(TAG, t.message.toString())
+                    (SessionManager::logout)()
                 }
             })
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+
+    private fun showError(message: String){
+        errorLabel.visibility = View.VISIBLE
+        errorLabel.text = message
+    }
 
     companion object {
         private const val TAG = "RegisterActivity"

@@ -11,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import coil.size.Scale
 import kotlinx.android.synthetic.main.article_row.view.*
 import nl.bueno.henry.common.Common
 import nl.bueno.henry.ui.DetailsActivity
@@ -20,6 +21,7 @@ import nl.bueno.henry.R
 import nl.bueno.henry.session.SessionManager
 import nl.bueno.henry.ui.fragments.BaseFragment
 import nl.bueno.henry.ui.fragments.LoginFragment
+import nl.bueno.henry.utils.ToastHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -32,6 +34,8 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
 
     private val likedColor: Int = Color.argb(255, 255, 0, 0)
     private val unLikedColor: Int = Color.argb(255, 128, 128, 128)
+
+    private var isBeingLiked: Boolean = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
@@ -52,7 +56,10 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
                     commit()
                 }
             }else{
-                likeArticle(holder)
+                if(!isBeingLiked){
+                    isBeingLiked = true
+                    likeArticle(holder)
+                }
             }
         }
         return holder
@@ -70,13 +77,13 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
 
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        //   Log.d("ApiResponse", "adding a new article to the view")
         val article = articles[position]
         holder.title.text = article.Title
 
-        holder.thumbnail.load(article.Image)//{
-        //       placeholder(R.drawable.ic_baseline_aspect_ratio_24)
-        //  }
+        holder.thumbnail.load(article.Image){
+            placeholder(R.drawable.ic_baseline_aspect_ratio_24)
+            scale(Scale.FILL)
+        }
 
         if(!article.IsLiked!!){
             holder.likeIcon.setColorFilter(unLikedColor)
@@ -99,38 +106,95 @@ class LikedArticlesAdapter(private var fragment: BaseFragment) : RecyclerView.Ad
 
         if(!article.IsLiked!!){
 
-            Log.d("ApiResponse", "likeArticle")
+            Log.d(TAG, "likeArticle")
 
-            articleService.likeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
+            articleService.unlikeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                    Log.d("ApiResponse response", response.code().toString())
-                    articles[holder.adapterPosition].IsLiked = true
-                    holder.itemView.likeIcon.setColorFilter(likedColor)
+                    when (response.code().toString()) {
+                        "200" -> {
+                            Log.d(TAG, response.code().toString())
+                            articles[holder.adapterPosition].IsLiked = true
+                            holder.itemView.likeIcon.setColorFilter(likedColor)
+                            notifyDataSetChanged()
+                        }
+                        "401" -> {
+                            fragment.context?.getString(R.string.unauthenticated)?.let {
+                                (ToastHelper::shortToast)(
+                                    it
+                                )
+                            }
+                        }
+                        else -> { // Note the block
+                            fragment.context?.getString(R.string.unexpected_error)?.let {
+                                (ToastHelper::shortToast)(
+                                    it
+                                )
+                            }
+                        }
+                    }
+                    isBeingLiked = false
                 }
+
                 override fun onFailure(call: Call<Void>, t: Throwable) {
-                    Log.d("ApiResponse", "The call failed")
-                    Log.d("ApiResponse error", t.message.toString())
+                    Log.d(TAG, "The call failed")
+                    Log.d(TAG, t.message.toString())
+                    fragment.context?.getString(R.string.liking_error)?.let {
+                        (ToastHelper::shortToast)(
+                            it
+                        )
+                    }
+                    isBeingLiked = false
                 }
             })
 
         }else{
 
-            Log.d("ApiResponse", "unlikeArticle")
+            Log.d(TAG, "unlikeArticle")
 
             articleService.unlikeArticle(article.Id, (SessionManager::getAuthToken)()).enqueue(object :
                 Callback<Void> {
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                    Log.d("ApiResponse response", response.code().toString())
-                    articles[holder.adapterPosition].IsLiked = false
-                    articles.remove(articles[holder.adapterPosition])
-                    notifyDataSetChanged()
+                    when (response.code().toString()) {
+                        "200" -> {
+                            Log.d(TAG, response.code().toString())
+                            articles[holder.adapterPosition].IsLiked = false
+                            articles.remove(articles[holder.adapterPosition])
+                            notifyDataSetChanged()
+                        }
+                        "401" -> {
+                            fragment.context?.getString(R.string.unauthenticated)?.let {
+                                (ToastHelper::shortToast)(
+                                    it
+                                )
+                            }
+                        }
+                        else -> { // Note the block
+                            fragment.context?.getString(R.string.unexpected_error)?.let {
+                                (ToastHelper::shortToast)(
+                                    it
+                                )
+                            }
+                        }
+                    }
+                    isBeingLiked = false
                 }
+
                 override fun onFailure(call: Call<Void>, t: Throwable) {
-                    Log.d("ApiResponse", "The call failed")
-                    Log.d("ApiResponse error", t.message.toString())
+                    Log.d(TAG, "The call failed")
+                    Log.d(TAG, t.message.toString())
+                    fragment.context?.getString(R.string.liking_error)?.let {
+                        (ToastHelper::shortToast)(
+                            it
+                        )
+                    }
+                    isBeingLiked = false
                 }
             })
         }
+    }
+
+    companion object {
+        private const val TAG = "LikedArticlesAdapter"
     }
 }

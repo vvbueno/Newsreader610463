@@ -1,5 +1,6 @@
 package nl.bueno.henry.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,10 +21,13 @@ import nl.bueno.henry.common.Common
 import nl.bueno.henry.service.ArticleService
 import nl.bueno.henry.service.response.ArticlesResponse
 import nl.bueno.henry.session.SessionManager
+import nl.bueno.henry.ui.DetailsActivity
 import nl.bueno.henry.utils.ToastHelper
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.net.UnknownHostException
+import java.util.concurrent.TimeoutException
 
 
 /**
@@ -41,6 +46,7 @@ class HomeFragment() : BaseFragment() {
     private lateinit var articlesSwipeRefresh: SwipeRefreshLayout
     private lateinit var articlesRecyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
+    private lateinit var errorLabel : TextView
 
 
     private var nextId: Int? = null
@@ -50,13 +56,22 @@ class HomeFragment() : BaseFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate called")
+    }
 
+    private fun showError(message: String){
+        errorLabel.visibility = View.VISIBLE
+        errorLabel.text = message
+    }
+
+    private fun hideError(){
+        errorLabel.visibility = View.GONE
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         progressBar = view.findViewById(R.id.progressBar)
+        errorLabel = view.findViewById(R.id.errorLabel)
 
         getArticles(null)
 
@@ -81,7 +96,7 @@ class HomeFragment() : BaseFragment() {
                 ) {
                     if (!isLoading) {
                         if (scrollY == (v.getChildAt(0).measuredHeight - v.measuredHeight)) {
-                            (ToastHelper::shortToast)("loading 20 more")
+                            //(ToastHelper::shortToast)("loading 20 more")
                             showLoader()
                             Log.d(TAG, "nextId: $nextId")
                             getArticles(nextId)
@@ -124,6 +139,9 @@ class HomeFragment() : BaseFragment() {
     }
 
     private fun getArticles(nextArticleId: Int?){
+
+        hideError()
+
         if(nextArticleId == null){
             Log.d(TAG, "getLatestArticles")
             articleService.getLatestArticles(limitPerPage, (SessionManager::getAuthToken)()).enqueue(
@@ -138,6 +156,11 @@ class HomeFragment() : BaseFragment() {
                             }
                             nextId = response.body()!!.NextId
                             adapter.addArticles(response.body()!!.Results)
+
+                            if (adapter.itemCount == 0) {
+                                showError(getString(R.string.no_articles_found))
+                            }
+
                         } else {
                             Log.d(TAG, response.code().toString())
                         }
@@ -147,9 +170,18 @@ class HomeFragment() : BaseFragment() {
 
                     override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                         Log.d(TAG, "getLatestArticles failed, reason ${t.message.toString()}")
-                        hideLoader()
+
+                        if (t is UnknownHostException) {
+                            showError(getString(R.string.internet_error_get_articles))
+                        } else if (t is TimeoutException) {
+                            showError(getString(R.string.error_refresh))
+                        } else {
+                            showError("Error: ${t.message.toString()}.")
+                        }
+
+                        (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
                         articlesSwipeRefresh.isRefreshing = false
-                        (ToastHelper::shortToast)("Error: ${t.message.toString()}. Try again.")
+                        hideLoader()
                     }
                 })
         }else{
@@ -167,6 +199,11 @@ class HomeFragment() : BaseFragment() {
                     if (response.body() != null) {
                         nextId = response.body()!!.NextId
                         adapter.addArticles(response.body()!!.Results)
+
+                        if (adapter.itemCount == 0) {
+                            showError(getString(R.string.no_articles_found))
+                        }
+
                     } else {
                         Log.d(TAG, response.code().toString())
                     }
@@ -175,11 +212,27 @@ class HomeFragment() : BaseFragment() {
 
                 override fun onFailure(call: Call<ArticlesResponse>, t: Throwable) {
                     Log.d(TAG, "getNextArticles failed, reason ${t.message.toString()}")
+
+                    if (t is UnknownHostException) {
+                        showError("Could not get articles. Please check your internet connection")
+                        showError(getString(R.string.internet_error_get_articles))
+                    } else if (t is TimeoutException) {
+                        showError(getString(R.string.error_refresh))
+                    } else {
+                        showError("Error: ${t.message.toString()}.")
+                    }
+
+                    (ToastHelper::shortToast)("Error: ${t.message.toString()}.")
+                    articlesSwipeRefresh.isRefreshing = false
                     hideLoader()
-                    (ToastHelper::shortToast)("Error: ${t.message.toString()}. Try again.")
                 }
             })
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.notifyDataSetChanged()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -17,8 +17,8 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:paddingBottom="20dp">
 
             <ImageView
                 android:id="@+id/articleImage"
@@ -78,15 +78,52 @@
                 tools:text="This is a description here\nThis is a description here\nThis is a description here\n" />
 
             <TextView
+                android:id="@+id/articleUrl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:autoLink="web"
+                android:lineSpacingExtra="2dp"
+                android:linksClickable="true"
+                android:text="Full article:"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/articleSummary"
+                tools:text="Full article: https://stackoverflow.com/questions/5457138/how-to-remove-imagebuttons-standard-background-imagee" />
+
+            <TextView
+                android:id="@+id/dateLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/articleUrl" />
+
+            <TextView
                 android:id="@+id/tagsLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:text="Tags:"
+                android:text="Categories:"
+                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/articleSummary" />
+                app:layout_constraintTop_toBottomOf="@+id/dateLabel" />
+
+            <TextView
+                android:id="@+id/articleRelatedLinks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="12dp"
+                android:autoLink="web"
+                android:lineSpacingExtra="2dp"
+                android:linksClickable="true"
+                app:layout_constraintStart_toStartOf="parent"
+
+                app:layout_constraintTop_toBottomOf="@+id/relatedLabel"
+                tools:text="https://stackoverflow.com/questions/5457138/how-to-remove-imagebuttons-standard-background-image\nhttps://stackoverflow.com/questions/5457138/how-to-remove-imagebuttons-standard-background-image" />
 
             <TextView
                 android:id="@+id/relatedLabel"
@@ -94,25 +131,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
                 android:text="Related:"
-                android:visibility = "gone"
+                android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tagsLabel" />
-
-            <TextView
-                android:id="@+id/articleRelatedLinks"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                app:layout_constraintStart_toStartOf="parent"
-                android:linksClickable="true"
-                android:autoLink="web"
-                android:lineSpacingExtra="2dp"
-                app:layout_constraintTop_toBottomOf="@+id/relatedLabel"
-                tools:text="https://stackoverflow.com/questions/5457138/how-to-remove-imagebuttons-standard-background-image\nhttps://stackoverflow.com/questions/5457138/how-to-remove-imagebuttons-standard-background-image" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
